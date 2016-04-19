@@ -6,6 +6,18 @@ class UsersLoginTest < ActionDispatch::IntegrationTest
     @user = users(:michael)
   end
 
+  test "visit page, redirect to login, log in, and see page" do
+    get users_path
+    assert_redirected_to login_url
+    post login_path, session: { email: @user.email, password: 'password' }
+    assert is_logged_in?
+    assert_redirected_to users_url
+    delete logout_path, method: :destroy
+    assert_redirected_to root_url
+    post login_path, session: { email: @user.email, password: 'password' }
+    assert_redirected_to @user
+  end
+
   test "login with invalid information" do
     get login_path
     assert_template 'sessions/new'

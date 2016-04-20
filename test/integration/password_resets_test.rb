@@ -7,6 +7,17 @@ class PasswordResetsTest < ActionDispatch::IntegrationTest
     @user = users(:michael)
   end
 
+  test "expired reset" do
+    get new_password_reset_path
+    post password_resets_path, password_reset: { email: @user.email }
+    @user = assigns(:user)
+    @user.update_attribute(:reset_sent_at, 3.hours.ago)
+    get edit_password_reset_path(@user.reset_token, email: @user.email)
+    assert_redirected_to new_password_reset_url
+    follow_redirect!
+    assert_match /expired/i, response.body
+  end
+  
   test "password resets" do
     get new_password_reset_path
     assert_template 'password_resets/new'

@@ -11,6 +11,7 @@ class MicropostsInterfaceTest < ActionDispatch::IntegrationTest
     get root_path
     assert_select 'div.pagination'
     # Invalid submission
+    assert_match '34 microposts', response.body
     assert_no_difference 'Micropost.count' do
       post microposts_path, micropost: { content: "" }
     end
@@ -32,5 +33,16 @@ class MicropostsInterfaceTest < ActionDispatch::IntegrationTest
     # Visit a different user.
     get user_path(users(:archer))
     assert_select 'a', text: 'delete', count: 0
+  end
+  
+  test "micropost pluralization is correct" do
+    other_user = users(:malory) 
+    log_in_as other_user
+    get root_path
+    assert_match "0 microposts", response.body
+    get root_path
+    post microposts_path, micropost: { content: "cocinala" }
+    follow_redirect!
+    assert_match "1 micropost", response.body
   end
 end
